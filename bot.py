@@ -3,12 +3,11 @@ from selenium import webdriver
 from bs4 import BeautifulSoup
 from constants import passKey, email, loginUrl, itemUrl
 
-browser = webdriver.Chrome('chromedriver')
+browser = webdriver.Chrome('chromedriver.exe')
 
 
 browser.get(loginUrl)
 
-buyButton = False
 
 loginBtn = browser.find_element_by_class_name('loginLink')
 
@@ -29,24 +28,38 @@ time.sleep(10)
 closePopupBtn = browser.find_element_by_id('ltkpopup-close-button')
 closePopupBtn.click()
 time.sleep(1)
-partsList = browser.find_elements_by_id('wrap')
 
 inStockParts = []
 
 partsAvailable = False
+isCheckingOut = False
+
+ 
 
 while not partsAvailable:
+    partsList = browser.find_elements_by_id('wrap')
 
     for part in partsList:
         status = part.find_element_by_css_selector('.mfr[itemprop="availability"]').get_attribute('innerText')
         if status == 'In Stock':
             inStockParts.append(part)
 
+    if not inStockParts:
+        print("partsList is empty")
+        time.sleep(2)
+        browser.refresh()
+    elif inStockParts:
+        print(f'List of parts available: {inStockParts}')
+        partsAvailable = True
+        # addItemsToCart()
 
-    # print(inStockParts)
+    
 
+
+if partsAvailable:
     for part in inStockParts:
-        # print("adding to cart")
+        itemName = part.find_element_by_css_selector('[itemprop="name"]').get_attribute('innerText')
+        print(f"adding {itemName} to cart")
 
         # print(part.get_attribute('innerHTML'))
 
@@ -59,17 +72,19 @@ while not partsAvailable:
             alert = browser.switch_to.alert
             if alert:
                 alert.accept()
+                addToCartBtn.click()
+
         except:
             print("no alert")
 
     try:
         checkOutBtn = browser.find_element_by_id('cmHdrCheckoutLink')
         if checkOutBtn:
-            partsAvailable = True
+            isCheckingOut = True
             checkOutBtn.click()
     except:
-        print("no items added")
-        browser.refresh()
+        print("error with checkout button")
+            
 
 
 
@@ -77,18 +92,21 @@ while not partsAvailable:
     
 
 
+# if isCheckingOut:
+#     enterCouponBtn = browser.find_element_by_id('aCouponPromoCode')
+#     enterCouponBtn.click()
 
-enterCouponBtn = browser.find_element_by_id('aCouponPromoCode')
-enterCouponBtn.click()
+#     couponInputField = browser.find_element_by_id('txtCouponPromo')
+#     couponInputField.send_keys('sae')
 
-couponInputField = browser.find_element_by_id('txtCouponPromo')
-couponInputField.send_keys('sae')
+#     applyCouponBtn = browser.find_element_by_id('btnCouponPromo')
+#     applyCouponBtn.click()
 
-applyCouponBtn = browser.find_element_by_id('btnCouponPromo')
-applyCouponBtn.click()
+#     continueToPaymentBtn = browser.find_element_by_id('btnSaveAndContinue')
+#     continueToPaymentBtn.click()
 
-continueToPaymentBtn = browser.find_element_by_id('btnSaveAndContinue')
-continueToPaymentBtn.click()
+
+
 # while not buyButton:
 #     try:
 #         addToCartBtn = browser.find_element_by_class_name('single_add_to_cart_button')
