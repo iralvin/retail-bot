@@ -3,3 +3,4 @@ main.py
 constants.py
 .vscode
 __pycache__
+run-script.bat
